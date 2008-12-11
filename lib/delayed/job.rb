@@ -105,8 +105,8 @@ module Delayed
         rescue LockError
           # We did not get the lock, some other worker process must have
           logger.warn "* [JOB] failed to aquire exclusive lock for #{job.name}"
-        rescue StandardError => e 
-          job.reschedule e.message        
+        rescue StandardError => e
+          job.reschedule e.to_s
           log_exception(job, e)
           return job
         end
