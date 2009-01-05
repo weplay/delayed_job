@@ -30,6 +30,23 @@ describe Delayed::Job do
     lambda { Delayed::Job.enqueue(Object.new) }.should raise_error(ArgumentError)
   end
 
+  it "should enqueue a job with a time to run at" do
+    Delayed::Job.enqueue(SimpleJob.new, 0, Time.now + 60)
+    Delayed::Job.count.should == 1
+  end
+  
+  it "should enqueue jobs that aren't immediately available" do
+    Delayed::Job.enqueue(SimpleJob.new, 0, Time.now + 60)
+    Delayed::Job.find_available.should be_empty
+  end
+  
+  it "should enqueue jobs that become available later" do
+    Delayed::Job.enqueue(SimpleJob.new, 0, Time.now + 60)
+    now = Time.now
+    Time.stub!(:now).and_return(now + 600)
+    Delayed::Job.find_available.should_not be_empty
+  end
+  
   it "should increase count after enqueuing items" do
     Delayed::Job.enqueue SimpleJob.new
     Delayed::Job.count.should == 1
