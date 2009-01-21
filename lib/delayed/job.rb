@@ -70,7 +70,7 @@ module Delayed
         self.unlock
         save!
       else
-        logger.info "* [JOB] PERMANENTLY removing #{self.name} because of #{attempts} consequetive failures."
+        logger.info "* [JOB] PERMANENTLY removing #{self.name} because of #{attempts} consecutive failures."
         destroy_failed_jobs ? destroy : update_attribute(:failed_at, Time.now)
       end
     end
@@ -123,7 +123,7 @@ module Delayed
       # this leads to a more even distribution of jobs across the worker processes
       find_available(5, max_run_time).each do |job|
         begin
-          logger.info "* [JOB] aquiring lock on #{job.name}"
+          logger.info "* [JOB] acquiring lock on #{job.name}"
           job.lock_exclusively!(max_run_time, worker_name)
           runtime =  Benchmark.realtime do
             invoke_job(job.payload_object, &block)
@@ -134,7 +134,7 @@ module Delayed
           return job
         rescue LockError
           # We did not get the lock, some other worker process must have
-          logger.warn "* [JOB] failed to aquire exclusive lock for #{job.name}"
+          logger.warn "* [JOB] failed to acquire exclusive lock for #{job.name}"
         rescue StandardError => e
           job.reschedule e.message, e.backtrace
           log_exception(job, e)
@@ -157,7 +157,7 @@ module Delayed
         # Simply resume and update the locked_at
         self.class.update_all(["locked_at = ?", now], ["id = ? and locked_by = ?", id, worker])
       end
-      raise LockError.new("Attempted to aquire exclusive lock failed") unless affected_rows == 1
+      raise LockError.new("Attempted to acquire exclusive lock failed") unless affected_rows == 1
 
       self.locked_at    = now
       self.locked_by    = worker
