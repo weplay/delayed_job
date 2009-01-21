@@ -3,6 +3,7 @@ $:.unshift(File.dirname(__FILE__) + '/../../rspec/lib')
 
 require 'rubygems'
 require 'active_record'
+gem 'sqlite3-ruby'
 
 require File.dirname(__FILE__) + '/../init'
 require 'spec'
@@ -21,6 +22,7 @@ ActiveRecord::Schema.define do
     table.datetime :run_at
     table.datetime :locked_at
     table.string   :locked_by
+    table.datetime :failed_at
     table.timestamps
   end
 

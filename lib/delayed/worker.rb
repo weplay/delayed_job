@@ -2,11 +2,18 @@ module Delayed
   class Worker
     SLEEP = 5
 
+    cattr_accessor :logger
+    self.logger = if defined?(Merb::Logger)
+                    Merb.logger
+                  elsif defined?(RAILS_DEFAULT_LOGGER)
+                    RAILS_DEFAULT_LOGGER
+                  end
+
     def initialize(options={})
       @quiet = options[:quiet]
       Delayed::Job.min_priority = options[:min_priority] if options.has_key?(:min_priority)
       Delayed::Job.max_priority = options[:max_priority] if options.has_key?(:max_priority)
-    end                                                                          
+    end
 
     def start
       say "*** Starting job worker #{Delayed::Job.worker_name}"
@@ -33,11 +40,14 @@ module Delayed
 
         break if $exit
       end
+
+    ensure
+      Delayed::Job.clear_locks!
     end
-    
+
     def say(text)
       puts text unless @quiet
-      RAILS_DEFAULT_LOGGER.info text
+      logger.info text if logger
     end
 
   end
