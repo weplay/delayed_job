@@ -51,7 +51,7 @@ This will simply create a Delayed::PerformableMethod job in the jobs table which
 
 To get enqueue jobs from the command line, you can use script/runner to execute the above code. If you have a Rails environment that is slow to load, there is a script which will insert a job directly into the database: Run @script/generate delayed_job@ to add @script/enqueue_job@. This script can then be used to queue up some arbitrary ruby code to be executed.
 
-$ ruby script/enqueue_job -e production 'MyClass.my_method(true)'
+  $ ruby script/enqueue_job -e production 'MyClass.my_method(true)'
                                                                                                                     
 h2. Running the jobs
 
