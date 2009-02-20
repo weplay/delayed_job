@@ -20,6 +20,11 @@ ARGV.clone.options do |opts|
   opts.on("-h", "--help",
           "Show this help message.") { $stderr.puts opts; exit }
 
+  opts.separator ""
+
+  opts.on("-q", "--quiet",
+          "No logging.") { options[:quiet] = true }
+
   opts.order! { |o| code ||= o } rescue retry
 end
 
@@ -29,7 +34,7 @@ db = options[:environment]
 configurations = YAML.load_file(File.join(File.dirname(__FILE__), '../../../../../../config', 'database.yml'))
 raise "no configuration for '#{db}'" unless configurations.key? db
 configuration = configurations[db]
-ActiveRecord::Base.logger = Logger.new(STDOUT)
+ActiveRecord::Base.logger = Logger.new(STDOUT) unless options[:quiet]
 ActiveRecord::Base.establish_connection(configuration)
 
 if code.nil?
