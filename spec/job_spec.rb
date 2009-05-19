@@ -109,7 +109,11 @@ describe Delayed::Job do
 
     M::ModuleJob.runs.should == 1
   end
-                   
+
+  it "should not have an error when first created" do
+    Delayed::Job.create!(:payload_object => ErrorJob.new).last_error.should == nil
+  end
+
   it "should re-schedule by about 1 second at first and increment this more and more minutes when it fails to execute properly" do
     Delayed::Job.enqueue ErrorJob.new
     Delayed::Job.work_off(1)
