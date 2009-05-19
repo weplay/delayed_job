@@ -18,7 +18,7 @@ module Delayed
     # There are some advantages to overriding this with something which survives worker retarts:
     # Workers can safely resume working on tasks which are locked by themselves. The worker will assume that it crashed before.
     cattr_accessor :worker_name
-    self.worker_name = "host:#{Socket.gethostname} pid:#{Process.pid}" rescue "pid:#{Process.pid}"
+    self.worker_name = [Process.pid.to_s, Socket.gethostname].join(":")
 
     NextTaskSQL         = '(run_at <= ? AND (locked_at IS NULL OR locked_at < ?) OR (locked_by = ?)) AND failed_at IS NULL'
     NextTaskOrder       = 'priority DESC, run_at ASC'

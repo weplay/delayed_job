@@ -7,31 +7,37 @@ gem 'sqlite3-ruby'
 
 require File.dirname(__FILE__) + '/../init'
 require 'spec'
-  
+
 ActiveRecord::Base.logger = Logger.new('/tmp/dj.log')
 ActiveRecord::Base.establish_connection(:adapter => 'sqlite3', :database => '/tmp/jobs.sqlite')
 ActiveRecord::Migration.verbose = false
 
-ActiveRecord::Schema.define do
+sql = <<-SQL
+  DROP TABLE IF EXISTS "delayed_jobs";
+  CREATE TABLE "delayed_jobs" (
+    "id" INTEGER NOT NULL PRIMARY KEY,
+    "priority"   INTEGER NOT NULL DEFAULT 0,
+    "attempts"   INTEGER NOT NULL DEFAULT 0,
+    "handler"    TEXT,
+    "last_error" MEDIUMTEXT,
+    "run_at"     DATETIME,
+    "locked_at"  DATETIME,
+    "locked_by"  CHAR(20),
+    "failed_at"  DATETIME,
+    "created_at" DATETIME,
+    "updated_at" DATETIME
+  );
 
-  create_table :delayed_jobs, :force => true do |table|
-    table.integer  :priority, :default => 0
-    table.integer  :attempts, :default => 0
-    table.text     :handler
-    table.string   :last_error
-    table.datetime :run_at
-    table.datetime :locked_at
-    table.string   :locked_by
-    table.datetime :failed_at
-    table.timestamps
-  end
+  DROP TABLE IF EXISTS "stories";
+  CREATE TABLE "stories" (
+    "id" INTEGER NOT NULL PRIMARY KEY,
+    "text" VARCHAR(255)
+  );
+SQL
 
-  create_table :stories, :force => true do |table|
-    table.string :text
-  end
-
+sql.split(/;/).select(&:present?).each do |sql_statement|
+  ActiveRecord::Base.connection.execute sql_statement
 end
-
 
 # Purely useful for test cases...
 class Story < ActiveRecord::Base
