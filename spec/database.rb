@@ -24,10 +24,18 @@ sql = <<-SQL
     `priority`   TINYINT NOT NULL DEFAULT 0,
     `attempts`   TINYINT NOT NULL DEFAULT 0,
     `handler`    TEXT,
-    `last_error` MEDIUMTEXT,
     `run_at`     DATETIME,
     `locked_at`  DATETIME,
     `locked_by`  CHAR(20),
+    `created_at` DATETIME,
+    `updated_at` DATETIME
+  );
+
+  DROP TABLE IF EXISTS `delayed_job_errors`;
+  CREATE TABLE `delayed_job_errors` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `job_id` INTEGER NOT NULL,
+    `message` MEDIUMTEXT NOT NULL,
     `created_at` DATETIME,
     `updated_at` DATETIME
   );

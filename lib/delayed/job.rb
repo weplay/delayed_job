@@ -3,10 +3,16 @@ module Delayed
   class DeserializationError < StandardError
   end
 
+  class JobError < ActiveRecord::Base
+    set_table_name :delayed_job_errors
+  end
+
   class Job < ActiveRecord::Base
     MAX_ATTEMPTS = 25
     MAX_RUN_TIME = 4.hours
     set_table_name :delayed_jobs
+
+    has_many :errors, :class_name => "Delayed::JobError"
 
     # Every worker has a unique name which by default is the pid of the process.
     # There are some advantages to overriding this with something which survives worker retarts:
@@ -28,6 +34,10 @@ module Delayed
 
     def self.clear_locks!
       update_all("locked_by = null, locked_at = null", ["locked_by = ?", worker_name])
+    end
+
+    def last_error
+      errors.first(:order => "id DESC").message
     end
 
     def payload_object
@@ -55,9 +65,10 @@ module Delayed
 
         self.attempts    += 1
         self.run_at       = time
-        self.last_error   = message + "\n" + backtrace.join("\n")
         self.unlock
         save!
+        
+        JobError.create!(:job_id => self.id, :message => (message + "\n" + backtrace.join("\n")))
       else
         logger.info "* [JOB] PERMANENTLY removing #{self.name} because of #{attempts} consecutive failures."
         destroy
