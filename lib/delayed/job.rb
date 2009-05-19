@@ -5,19 +5,24 @@ module Delayed
   class DeserializationError < StandardError
   end
 
+  class SerializationError < StandardError
+  end
+
   class JobError < ActiveRecord::Base
     set_table_name :delayed_job_errors
   end
-  
+
   class JobHandler < ActiveRecord::Base
     set_table_name :delayed_job_handlers
 
     def payload_object=(object)
-      self['handler'] = object.to_yaml
+      yml = object.to_yaml
+      raise SerializationError unless yml.size < 65_534
+      write_attribute(:handler, yml)
     end
 
     def payload_object
-      deserialize(self['handler'])
+      deserialize(read_attribute(:handler))
     end
 
   private
@@ -113,7 +118,7 @@ module Delayed
         self.run_at       = time
         self.unlock
         save!
-        
+
         JobError.create!(:job_id => self.id, :message => (message + "\n" + backtrace.join("\n")))
       else
         logger.info "* [JOB] PERMANENTLY removing #{self.name} because of #{attempts} consecutive failures."
@@ -127,7 +132,7 @@ module Delayed
       unless object.respond_to?(:perform) || block_given?
         raise ArgumentError, 'Cannot enqueue items which do not respond to perform'
       end
-    
+
       priority = args.first || 0
       run_at   = args[1]
 

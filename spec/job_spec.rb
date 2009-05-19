@@ -128,6 +128,13 @@ describe Delayed::Job do
     job.run_at.should < Delayed::Job.db_time_now + 10.minutes
   end
 
+  it "should raise a SerializationError when the job size isn't less than 64 KB" do
+    payload_object = mock("payload", :to_yaml => ("a" * 65534))
+    lambda {
+      Delayed::Job.create!(:payload_object => payload_object)
+    }.should raise_error(Delayed::SerializationError)
+  end
+
   it "should raise an DeserializationError when the job class is totally unknown" do
 
     job = Delayed::Job.new
