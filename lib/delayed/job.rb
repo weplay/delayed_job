@@ -78,7 +78,8 @@ module Delayed
     end
 
     def last_error
-      errors.first(:order => "id DESC").message
+      job_error = errors.first(:order => "id DESC")
+      job_error && job_error.message
     end
 
     def payload_object
