@@ -21,7 +21,7 @@ sql = <<-SQL
   DROP TABLE IF EXISTS `delayed_jobs`;
   CREATE TABLE `delayed_jobs` (
     `id` INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `priority`   INTEGER NOT NULL DEFAULT 0,
+    `priority`   TINYINT NOT NULL DEFAULT 0,
     `attempts`   TINYINT NOT NULL DEFAULT 0,
     `handler`    TEXT,
     `last_error` MEDIUMTEXT,
