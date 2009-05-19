@@ -209,8 +209,11 @@ describe Delayed::Job do
     end
 
     it "should be able to get exclusive access again when the worker name is the same" do
+      now = Time.now
       @job.lock_exclusively! 5.minutes, 'worker1'
+      Time.stub!(:now => (now + 1))
       @job.lock_exclusively! 5.minutes, 'worker1'
+      Time.stub!(:now => (now + 2))
       @job.lock_exclusively! 5.minutes, 'worker1'
     end                                        
   end            
