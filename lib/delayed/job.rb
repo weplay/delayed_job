@@ -8,19 +8,13 @@ module Delayed
     MAX_RUN_TIME = 4.hours
     set_table_name :delayed_jobs
 
-    # By default failed jobs are destroyed after too many attempts.
-    # If you want to keep them around (perhaps to inspect the reason
-    # for the failure), set this to false.
-    cattr_accessor :destroy_failed_jobs
-    self.destroy_failed_jobs = true
-
     # Every worker has a unique name which by default is the pid of the process.
     # There are some advantages to overriding this with something which survives worker retarts:
     # Workers can safely resume working on tasks which are locked by themselves. The worker will assume that it crashed before.
     cattr_accessor :worker_name
     self.worker_name = [Process.pid.to_s, Socket.gethostname].join(":")
 
-    NextTaskSQL         = '(run_at <= ? AND (locked_at IS NULL OR locked_at < ?) OR (locked_by = ?)) AND failed_at IS NULL'
+    NextTaskSQL         = '(run_at <= ? AND (locked_at IS NULL OR locked_at < ?) OR (locked_by = ?))'
     NextTaskOrder       = 'priority DESC, run_at ASC'
 
     ParseObjectFromYaml = /\!ruby\/\w+\:([^\s]+)/
@@ -35,11 +29,6 @@ module Delayed
     def self.clear_locks!
       update_all("locked_by = null, locked_at = null", ["locked_by = ?", worker_name])
     end
-
-    def failed?
-      failed_at
-    end
-    alias_method :failed, :failed?
 
     def payload_object
       @payload_object ||= deserialize(self['handler'])
@@ -71,7 +60,7 @@ module Delayed
         save!
       else
         logger.info "* [JOB] PERMANENTLY removing #{self.name} because of #{attempts} consecutive failures."
-        destroy_failed_jobs ? destroy : update_attribute(:failed_at, Time.now)
+        destroy
       end
     end
 

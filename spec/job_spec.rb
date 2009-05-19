@@ -164,33 +164,11 @@ describe Delayed::Job do
     job.should_receive(:attempt_to_load).with('Delayed::JobThatDoesNotExist').and_return(true)
     lambda { job.payload_object.perform }.should raise_error(Delayed::DeserializationError)
   end
-  
-  it "should be failed if it failed more than MAX_ATTEMPTS times and we don't want to destroy jobs" do
-    default = Delayed::Job.destroy_failed_jobs
-    Delayed::Job.destroy_failed_jobs = false
-
-    @job = Delayed::Job.create :payload_object => SimpleJob.new, :attempts => 50
-    @job.reload.failed_at.should == nil
-    @job.reschedule 'FAIL'
-    @job.reload.failed_at.should_not == nil
-
-    Delayed::Job.destroy_failed_jobs = default
-  end
 
   it "should be destroyed if it failed more than MAX_ATTEMPTS times and we want to destroy jobs" do
-    default = Delayed::Job.destroy_failed_jobs
-    Delayed::Job.destroy_failed_jobs = true
-
     @job = Delayed::Job.create :payload_object => SimpleJob.new, :attempts => 50
     @job.should_receive(:destroy)
     @job.reschedule 'FAIL'
-
-    Delayed::Job.destroy_failed_jobs = default
-  end
-
-  it "should never find failed jobs" do
-    @job = Delayed::Job.create :payload_object => SimpleJob.new, :attempts => 50, :failed_at => Time.now
-    Delayed::Job.find_available(1).length.should == 0
   end
 
   context "when another worker is already performing an task, it" do
