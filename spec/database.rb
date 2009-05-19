@@ -26,8 +26,7 @@ sql = <<-SQL
     `run_at`     DATETIME,
     `locked_at`  DATETIME,
     `locked_by`  CHAR(20),
-    `created_at` DATETIME,
-    `updated_at` DATETIME
+    `created_at` DATETIME
   );
 
   DROP TABLE IF EXISTS `delayed_job_errors`;
