@@ -23,7 +23,6 @@ sql = <<-SQL
     `id` INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `priority`   TINYINT NOT NULL DEFAULT 0,
     `attempts`   TINYINT NOT NULL DEFAULT 0,
-    `handler`    TEXT,
     `run_at`     DATETIME,
     `locked_at`  DATETIME,
     `locked_by`  CHAR(20),
@@ -33,12 +32,20 @@ sql = <<-SQL
 
   DROP TABLE IF EXISTS `delayed_job_errors`;
   CREATE TABLE `delayed_job_errors` (
-    `id` INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `job_id` INTEGER NOT NULL,
-    `message` MEDIUMTEXT NOT NULL,
-    `created_at` DATETIME,
-    `updated_at` DATETIME
+    `id`          INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `job_id`      INTEGER NOT NULL,
+    `message`     MEDIUMTEXT NOT NULL,
+    `created_at`  DATETIME
   );
+  CREATE INDEX index_dj_errors ON delayed_job_errors (job_id);
+
+  DROP TABLE IF EXISTS `delayed_job_handlers`;
+  CREATE TABLE `delayed_job_handlers` (
+    `id`      INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `job_id`  INTEGER NOT NULL,
+    `handler` TEXT NOT NULL
+  );
+  CREATE INDEX index_dj_handlers ON delayed_job_handlers (job_id);
 
   DROP TABLE IF EXISTS `stories`;
   CREATE TABLE `stories` (

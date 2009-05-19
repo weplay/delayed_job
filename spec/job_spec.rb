@@ -136,23 +136,18 @@ describe Delayed::Job do
     job = Delayed::Job.new
     job['handler'] = "--- !ruby/object:JobThatDoesNotExist {}"
 
-    job.should_receive(:attempt_to_load).with('JobThatDoesNotExist').and_return(true)
-
     lambda { job.payload_object.perform }.should raise_error(Delayed::DeserializationError)
   end
 
   it "should try include the namespace when loading unknown objects" do
     job = Delayed::Job.new
     job['handler'] = "--- !ruby/object:Delayed::JobThatDoesNotExist {}"
-    job.should_receive(:attempt_to_load).with('Delayed::JobThatDoesNotExist').and_return(true)
     lambda { job.payload_object.perform }.should raise_error(Delayed::DeserializationError)
   end
 
   it "should also try to load structs when they are unknown (raises TypeError)" do
     job = Delayed::Job.new
     job['handler'] = "--- !ruby/struct:JobThatDoesNotExist {}"
-
-    job.should_receive(:attempt_to_load).with('JobThatDoesNotExist').and_return(true)
 
     lambda { job.payload_object.perform }.should raise_error(Delayed::DeserializationError)
   end
@@ -161,7 +156,6 @@ describe Delayed::Job do
     job = Delayed::Job.new
     job['handler'] = "--- !ruby/struct:Delayed::JobThatDoesNotExist {}"
 
-    job.should_receive(:attempt_to_load).with('Delayed::JobThatDoesNotExist').and_return(true)
     lambda { job.payload_object.perform }.should raise_error(Delayed::DeserializationError)
   end
 

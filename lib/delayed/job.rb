@@ -6,12 +6,53 @@ module Delayed
   class JobError < ActiveRecord::Base
     set_table_name :delayed_job_errors
   end
+  
+  class JobHandler < ActiveRecord::Base
+    set_table_name :delayed_job_handlers
+
+    def payload_object=(object)
+      self['handler'] = object.to_yaml
+    end
+
+    def payload_object
+      deserialize(self['handler'])
+    end
+
+  private
+
+    def deserialize(source)
+      handler = YAML.load(source) rescue nil
+
+      unless handler.respond_to?(:perform)
+        if handler.nil? && source =~ ParseObjectFromYaml
+          handler_class = $1
+        end
+        attempt_to_load(handler_class || handler.class)
+        handler = YAML.load(source)
+      end
+
+      return handler if handler.respond_to?(:perform)
+
+      raise DeserializationError,
+        'Job failed to load: Unknown handler. Try to manually require the appropiate file.'
+    rescue TypeError, LoadError, NameError => e
+      raise DeserializationError,
+        "Job failed to load: #{e.message}. Try to manually require the required file."
+    end
+
+    # Constantize the object so that ActiveSupport can attempt
+    # its auto loading magic. Will raise LoadError if not successful.
+    def attempt_to_load(klass)
+       klass.constantize
+    end
+  end
 
   class Job < ActiveRecord::Base
     MAX_ATTEMPTS = 25
     MAX_RUN_TIME = 4.hours
     set_table_name :delayed_jobs
 
+    has_one :handler, :class_name => "Delayed::JobHandler"
     has_many :errors, :class_name => "Delayed::JobError"
 
     # Every worker has a unique name which by default is the pid of the process.
@@ -41,7 +82,13 @@ module Delayed
     end
 
     def payload_object
-      @payload_object ||= deserialize(self['handler'])
+      self.handler ||= JobHandler.new(:job_id => self.id)
+      @payload_object ||= handler.payload_object
+    end
+
+    def payload_object=(object)
+      self.handler ||= JobHandler.new(:job_id => self.id)
+      handler.payload_object = object
     end
 
     def name
@@ -53,10 +100,6 @@ module Delayed
           payload.class.name
         end
       end
-    end
-
-    def payload_object=(object)
-      self['handler'] = object.to_yaml
     end
 
     def reschedule(message, backtrace = [], time = nil)
@@ -201,32 +244,6 @@ module Delayed
     end
 
   private
-
-    def deserialize(source)
-      handler = YAML.load(source) rescue nil
-
-      unless handler.respond_to?(:perform)
-        if handler.nil? && source =~ ParseObjectFromYaml
-          handler_class = $1
-        end
-        attempt_to_load(handler_class || handler.class)
-        handler = YAML.load(source)
-      end
-
-      return handler if handler.respond_to?(:perform)
-
-      raise DeserializationError,
-        'Job failed to load: Unknown handler. Try to manually require the appropiate file.'
-    rescue TypeError, LoadError, NameError => e
-      raise DeserializationError,
-        "Job failed to load: #{e.message}. Try to manually require the required file."
-    end
-
-    # Constantize the object so that ActiveSupport can attempt
-    # its auto loading magic. Will raise LoadError if not successful.
-    def attempt_to_load(klass)
-       klass.constantize
-    end
 
     def self.db_time_now
       (ActiveRecord::Base.default_timezone == :utc) ? Time.now.utc : Time.now
