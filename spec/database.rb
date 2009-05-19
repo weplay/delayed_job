@@ -17,7 +17,7 @@ sql = <<-SQL
   CREATE TABLE "delayed_jobs" (
     "id" INTEGER NOT NULL PRIMARY KEY,
     "priority"   INTEGER NOT NULL DEFAULT 0,
-    "attempts"   INTEGER NOT NULL DEFAULT 0,
+    "attempts"   TINYINT NOT NULL DEFAULT 0,
     "handler"    TEXT,
     "last_error" MEDIUMTEXT,
     "run_at"     DATETIME,
