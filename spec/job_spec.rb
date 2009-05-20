@@ -120,8 +120,8 @@ describe Delayed::Job do
 
     job = Delayed::Job.find(:first)
 
-    job.last_error.should =~ /did not work/
-    job.last_error.should =~ /job_spec.rb:10:in `perform'/
+    job.last_error_message.should =~ /did not work/
+    job.last_error_message.should =~ /job_spec.rb:10:in `perform'/
     job.attempts.should == 1
 
     job.run_at.should > Delayed::Job.db_time_now - 10.minutes

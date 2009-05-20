@@ -62,6 +62,7 @@ module Delayed
     set_table_name :delayed_jobs
 
     has_one :handler, :class_name => "Delayed::JobHandler", :dependent => :delete
+    has_one :last_error, :class_name => "Delayed::JobError", :order => "delayed_job_errors.id DESC"
     has_many :errors, :class_name => "Delayed::JobError"
 
     # Every worker has a unique name which by default is the pid of the process.
@@ -84,9 +85,8 @@ module Delayed
       update_all("locked_by = null, locked_at = null", ["locked_by = ?", worker_name])
     end
 
-    def last_error
-      job_error = errors.first(:order => "id DESC")
-      job_error && job_error.message
+    def last_error_message
+      last_error && last_error.message
     end
 
     def payload_object
