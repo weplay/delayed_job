@@ -81,6 +81,10 @@ module Delayed
     class LockError < StandardError
     end
 
+    class << self
+      attr_accessor :active_id
+    end
+
     def self.clear_locks!
       update_all("locked_by = null, locked_at = null", ["locked_by = ?", worker_name])
     end
@@ -178,7 +182,13 @@ module Delayed
           logger.info "* [JOB] acquiring lock on #{job.name}"
           job.lock_exclusively!(max_run_time, worker_name)
           runtime =  Benchmark.realtime do
-            invoke_job(job.payload_object, &block)
+            begin
+              Delayed::Job.active_id = job.id
+              invoke_job(job.payload_object, &block)
+            ensure
+              Delayed::Job.active_id = nil
+            end
+
             job.destroy
           end
           logger.info "* [JOB] #{job.name} completed after %.4f" % runtime

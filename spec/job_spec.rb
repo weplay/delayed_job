@@ -78,6 +78,21 @@ describe Delayed::Job do
     Delayed::Job.first.run_at.should be_close(later, 1)
   end
 
+  it "should not expose an active job id when not working" do
+    Delayed::Job.active_id.should == nil
+  end
+
+  it "should expose the current job's id when working" do
+    job = Delayed::Job.enqueue do
+      "$active_job_id = Delayed::Job.active_id"
+    end
+    job.id.should_not be_nil
+    
+    $active_job_id = nil
+    Delayed::Job.work_off
+    $active_job_id.should == job.id
+  end
+
   it "should call perform on jobs when running work_off" do
     SimpleJob.runs.should == 0
 
