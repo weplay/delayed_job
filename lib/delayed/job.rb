@@ -59,8 +59,8 @@ module Delayed
     MAX_RUN_TIME = 4.hours
     set_table_name :delayed_jobs
 
-    has_one :handler, :class_name => "Delayed::JobHandler", :dependent => :delete
     has_one :last_error, :class_name => "Delayed::JobError", :order => "delayed_job_errors.id DESC"
+    has_one :handler, :class_name => "Delayed::JobHandler"
     has_many :errors, :class_name => "Delayed::JobError"
 
     # Every worker has a unique name which by default is the pid of the process.
