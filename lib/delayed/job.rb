@@ -66,6 +66,8 @@ module Delayed
     end
 
     def payload_object=(object)
+      yml = object.to_yaml
+      raise SerializationError unless yml.size < 65_534
       self['handler'] = object.to_yaml
     end
 
