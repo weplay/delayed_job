@@ -13,8 +13,6 @@ module Delayed
   end
 
   class JobHandler < ActiveRecord::Base
-    ParseObjectFromYaml = /\!ruby\/\w+\:([^\s]+)/
-
     set_table_name :delayed_job_handlers
 
     def payload_object=(object)
@@ -73,6 +71,8 @@ module Delayed
 
     NextTaskSQL         = '(run_at <= ? AND (locked_at IS NULL OR locked_at < ?) OR (locked_by = ?))'
     NextTaskOrder       = 'priority DESC, run_at ASC'
+
+    ParseObjectFromYaml = /\!ruby\/\w+\:([^\s]+)/
 
     cattr_accessor :min_priority, :max_priority
     self.min_priority = nil
