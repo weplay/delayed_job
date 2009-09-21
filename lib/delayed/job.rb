@@ -67,7 +67,8 @@ module Delayed
 
     def payload_object=(object)
       yml = object.to_yaml
-      raise SerializationError unless yml.size < 65_534
+      # Fail fast if the Job would be cut off by the limit of a MySQL MEDIUMTEXT
+      raise SerializationError unless yml.size < 16_777_215
       self['handler'] = object.to_yaml
     end
 
