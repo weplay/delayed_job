@@ -144,7 +144,7 @@ describe Delayed::Job do
   end
 
   it "should raise a SerializationError when the job size isn't less than 64 KB" do
-    payload_object = mock("payload", :to_yaml => ("a" * 65534))
+    payload_object = mock("payload", :to_yaml => mock("string", :size => 116_777_215))
     lambda {
       Delayed::Job.create!(:payload_object => payload_object)
     }.should raise_error(Delayed::SerializationError)
