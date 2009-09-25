@@ -23,7 +23,7 @@ sql = <<-SQL
     `id` INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `priority`   TINYINT NOT NULL DEFAULT 0,
     `attempts`   TINYINT NOT NULL DEFAULT 0,
-    `handler`    TEXT,
+    `handler`    MEDIUMTEXT,
     `run_at`     DATETIME,
     `locked_at`  DATETIME,
     `locked_by`  CHAR(20),
