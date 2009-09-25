@@ -200,7 +200,9 @@ module Delayed
       num.times do
         job = self.reserve do |j|
           begin
-            j.perform
+            ActiveRecord::Base.transaction do
+              j.perform
+            end
             success += 1
           rescue
             failure += 1

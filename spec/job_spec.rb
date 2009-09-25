@@ -15,7 +15,14 @@ module M
     cattr_accessor :runs; self.runs = 0
     def perform; @@runs += 1; end
   end
+end
 
+class BrokenInsertJob
+  def perform
+    Story.create! :text => "first"
+    raise "FAIL"
+    Story.create! :text => "second"
+  end
 end
 
 describe Delayed::Job do
@@ -102,6 +109,13 @@ describe Delayed::Job do
     SimpleJob.runs.should == 1
   end
 
+  it "should perform the work inside a transaction" do
+    Delayed::Job.enqueue BrokenInsertJob.new
+
+    lambda {
+      Delayed::Job.work_off
+    }.should_not change(Story, :count)
+  end
 
   it "should work with eval jobs" do
     $eval_job_ran = false

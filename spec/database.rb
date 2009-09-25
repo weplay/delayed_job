@@ -28,7 +28,7 @@ sql = <<-SQL
     `locked_at`  DATETIME,
     `locked_by`  CHAR(20),
     `created_at` DATETIME
-  );
+  ) ENGINE=InnoDB;
 
   DROP TABLE IF EXISTS `delayed_job_errors`;
   CREATE TABLE `delayed_job_errors` (
@@ -37,13 +37,13 @@ sql = <<-SQL
     `message` MEDIUMTEXT NOT NULL,
     `created_at` DATETIME,
     `updated_at` DATETIME
-  );
+  ) ENGINE=InnoDB;
 
   DROP TABLE IF EXISTS `stories`;
   CREATE TABLE `stories` (
     `id` INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `text` VARCHAR(255)
-  );
+  ) ENGINE=InnoDB;
 SQL
 
 sql.split(/;/).select(&:present?).each do |sql_statement|
