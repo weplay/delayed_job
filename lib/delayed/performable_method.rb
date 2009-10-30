@@ -45,6 +45,9 @@ module Delayed
     end
 
     def ar_to_string(obj)
+      if obj.id.nil?
+        raise Delayed::SerializationError.new("Can't serialize an unsaved ActiveRecord")
+      end
       "AR:#{obj.class}:#{obj.id}"
     end
 

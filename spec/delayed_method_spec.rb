@@ -98,6 +98,11 @@ describe 'random ruby objects' do
       job.payload_object.args.should    == []
       job.payload_object.perform.should == 'Once upon...'
     end
+    
+    it "should raise an exception if the object is an unsaved active record" do
+      story = Story.new :text => 'Once upon...'
+      lambda { story.send_later(:tell) }.should raise_error(Delayed::SerializationError)
+    end
 
     it "should store arguments as string if they an active record" do
 
