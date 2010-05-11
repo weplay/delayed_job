@@ -22,6 +22,10 @@ ARGV.clone.options do |opts|
 
   opts.separator ""
 
+  opts.on("-p", "--priority=N", Float, "Priority of Job to be enqueued") do |n|
+    options[:priority] = n
+  end
+
   opts.on("-q", "--quiet",
           "No logging.") { options[:quiet] = true }
 
@@ -42,5 +46,6 @@ if code.nil?
   exit 1
 else
   require "delayed_job"
-  Delayed::Job.enqueue Delayed::EvaledJob.new { code }
+  priority = options[:priority] || 0
+  Delayed::Job.enqueue Delayed::EvaledJob.new { code }, priority
 end
