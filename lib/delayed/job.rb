@@ -142,7 +142,7 @@ module Delayed
           runtime =  Benchmark.realtime do
             begin
               Delayed::Job.active_id = job.id
-              invoke_job(job.payload_object, &block)
+              job.invoke_job(&block)
             ensure
               Delayed::Job.active_id = nil
             end
@@ -163,6 +163,11 @@ module Delayed
       end
 
       nil
+    end
+
+    # Moved into its own method so that new_relic can trace it.
+    def invoke_job(&block)
+      block.call(payload_object)
     end
 
     # This method is used internally by reserve method to ensure exclusive access
@@ -214,11 +219,6 @@ module Delayed
       end
 
       return [success, failure]
-    end
-
-    # Moved into its own method so that new_relic can trace it.
-    def self.invoke_job(job, &block)
-      block.call(job)
     end
 
   private
