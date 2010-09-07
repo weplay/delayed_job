@@ -140,4 +140,25 @@ describe 'random ruby objects' do
     end
   end
 
+  describe "send_at" do
+    it "should respond_to :send_at" do
+      RandomRubyObject.new.should respond_to(:send_at)
+    end
+    
+    it "should add a new entry to the job table when send_at is called on it" do
+      Delayed::Job.count.should == 0
+
+      RandomRubyObject.new.send_at(Time.now + 5.minutes, :to_s)
+
+      Delayed::Job.count.should == 1
+    end
+    
+    it "should insert a job to be run at a time in the future" do
+      now = Time.now
+      Time.stub!(:now => now)
+      RandomRubyObject.new.send_at(now + 5.minutes, :to_s)
+      Delayed::Job.first.run_at.to_i.should == (now + 5.minutes).to_i
+    end
+  end
+
 end

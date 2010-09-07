@@ -8,8 +8,12 @@ module Delayed
       Delayed::Job.enqueue Delayed::PerformableMethod.new(self, method.to_sym, args)
     end
     
+    def send_at(time, method, *args)
+      Delayed::Job.enqueue(Delayed::PerformableMethod.new(self, method.to_sym, args), 0, time)
+    end
+    
     def send_after(time, method, *args)
-      Delayed::Job.enqueue(Delayed::PerformableMethod.new(self, method.to_sym, args), 0, time.from_now)
+      send_at(time.from_now, method, *args)
     end
   end
 end
