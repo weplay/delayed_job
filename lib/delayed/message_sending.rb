@@ -13,7 +13,7 @@ module Delayed
     end
     
     def send_after(time, method, *args)
-      send_at(time.from_now, method, *args)
+      send_at(Job.db_time_now + time, method, *args)
     end
   end
 end
